@@ -1,0 +1,137 @@
+############################################################
+#
+# web访问端口号
+#
+############################################################
+server:
+  tomcat:
+    uri-encoding: UTF-8
+  max-http-header-size: 80KB
+
+############################################################
+#
+# 配置数据源信息
+#
+############################################################
+spring:
+  profiles:
+    active: dev
+  datasource:                                           # 数据源的相关配置
+    type: com.zaxxer.hikari.HikariDataSource          # 数据源类型：HikariCP
+    driver-class-name: com.mysql.jdbc.Driver          # mysql驱动
+    hikari:
+      connection-timeout: 30000       # 等待连接池分配连接的最大时长（毫秒），超过这个时长还没可用的连接则发生SQLException， 默认:30秒
+      minimum-idle: 5                 # 最小连接数
+      maximum-pool-size: 20           # 最大连接数
+      auto-commit: true               # 自动提交
+      idle-timeout: 600000            # 连接超时的最大时长（毫秒），超时则被释放（retired），默认:10分钟
+      pool-name: DateSourceHikariCP     # 连接池名字
+      max-lifetime: 1800000           # 连接的生命时长（毫秒），超时而且没被使用则被释放（retired），默认:30分钟 1800000ms
+      connection-test-query: SELECT 1
+  servlet:
+    multipart:
+      max-file-size: 20480000
+#      connection-init-sql: set names utf8mb4
+#    jpa:
+#      properties:
+#        hibernate:
+#          show_sql: true
+#          format_sql: true
+
+
+############################################################
+#
+# mybatis 配置
+#
+############################################################
+mybatis:
+  type-aliases-package: com.ushill.pojo          # 所有POJO类所在包路径
+  mapper-locations: classpath:mapper/*.xml      # mapper映射文件
+  configuration:
+    log-impl: org.apache.ibatis.logging.stdout.StdOutImpl
+############################################################
+#
+# mybatis mapper 配置
+#
+############################################################
+# 通用 Mapper 配置
+mapper:
+  mappers: com.ushill.my.mapper.MyMapper
+  not-empty: false
+  identity: MYSQL
+
+pagehelper:
+  helperDialect: mysql
+  supportMethodsArguments: true
+
+uscinema:
+  security:
+    jwt-key: kfJDK23LKJFioesjdfKLFJdvmkvcmxvkdloru894i8DN
+    token-expired-in: 604800
+  img-dir:
+    movie: /static/posters
+    user: /static/user_images
+    storage-path: /static
+    user-path: /user_images
+  limit:
+    movies:
+      list-page: 15
+      user-home-page: 20
+      user-movie-page: 15
+      top: 250
+      fast-search: 25
+      refine-search: 10
+    users:
+      fast-search:
+        critics: 20
+        users: 20
+      refine-search:
+        critics: 8
+        users: 15
+    comments:
+      summary:
+        critic: 8
+        user: 6
+      page: 15
+      user-page:
+        summary: 18
+        page: 15
+    movie-pages:
+      all: 300
+      coming-soon: 10
+      bnm: 30
+    filesize:
+      image: 20480000
+
+  cached-key:
+    v1:
+      nowplaying: uscc:v1:np
+      coming-soon: uscc:v1:cm
+      user-stat: uscc:v1:user-stat
+      cached-stat: uscc:v1:cached-stat
+      movie-list:
+        all: uscc:v1:mv:all
+        coming-soon: uscc:v1:mv:cm
+        bnm: uscc:v1:mv:bnm
+        top: uscc:v1:mv:top
+      movie:
+        detail: uscc:v1:mv:d
+        comments: uscc:v1:mv:cmts
+        comment-ratio: uscc:v1:mv:rto
+      critics: uscc:v1:critics
+      user:
+        cmts: uscc:v1:user:cmts
+        info: uscc:v1:user:info
+
+  message:
+    update-rating:
+      ex: update_rating_ex
+      rk: update_rating_rk
+      queue: update_rating_queue
+    change-critic:
+      ex: change_critic_ex
+      rk: change_critic_rk
+      queue: change_critic_queue
+
+  node-id: 5964
+

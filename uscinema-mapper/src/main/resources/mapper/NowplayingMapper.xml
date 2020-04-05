@@ -1,0 +1,25 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd" >
+<mapper namespace="com.ushill.mapper.NowplayingMapper" >
+  <resultMap id="BaseResultMap" type="com.ushill.models.Nowplaying" >
+    <!--
+      WARNING - @mbg.generated
+    -->
+    <id column="id" property="id" jdbcType="INTEGER" />
+    <result column="douban_id" property="doubanId" jdbcType="INTEGER" />
+    <result column="weight" property="weight" jdbcType="INTEGER" />
+  </resultMap>
+  <resultMap id="SummaryMap" type="com.ushill.DTO.MovieSummaryDTO" >
+    <id column="movie_id" property="movieId" jdbcType="INTEGER" />
+    <result column="movie_image" property="movieImage" jdbcType="VARCHAR" />
+    <result column="movie_title" property="movieTitle" jdbcType="VARCHAR" />
+    <result column="score" property="score" jdbcType="DECIMAL" />
+    <result column="weight" property="weight" jdbcType="INTEGER" />
+  </resultMap>
+  <select id="getNowplayingSummary" resultMap="SummaryMap">
+    SELECT movies.id AS movie_id, movies.poster_store_path AS movie_image,
+      movies.title AS movie_title, movies.uscc_rating AS score, nowplaying.weight AS weight
+    FROM nowplaying JOIN movies ON nowplaying.id = movies.id
+    ORDER BY weight;
+  </select>
+</mapper>

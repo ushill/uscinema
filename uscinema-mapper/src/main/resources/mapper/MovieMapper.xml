@@ -1,0 +1,39 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.ushill.mapper.MovieMapper">
+  <resultMap id="BaseResultMap" type="com.ushill.models.Movie">
+    <!--
+      WARNING - @mbg.generated
+    -->
+    <id column="id" jdbcType="INTEGER" property="id" />
+    <result column="douban_id" jdbcType="VARCHAR" property="doubanId" />
+    <result column="title" jdbcType="VARCHAR" property="title" />
+    <result column="first_year" jdbcType="CHAR" property="firstYear" />
+    <result column="release_date_cn" jdbcType="VARCHAR" property="releaseDateCn" />
+    <result column="uscc_rating" jdbcType="DECIMAL" property="usccRating" />
+    <result column="uscc_rating_origin" jdbcType="DECIMAL" property="usccRatingOrigin" />
+    <result column="uscc_rating_cnt" jdbcType="INTEGER" property="usccRatingCnt" />
+    <result column="user_rating" jdbcType="DECIMAL" property="userRating" />
+    <result column="douban_rating" jdbcType="DECIMAL" property="doubanRating" />
+    <result column="bnm" jdbcType="TINYINT" property="bnm" />
+    <result column="db_rate_num" jdbcType="INTEGER" property="dbRateNum" />
+    <result column="directors_name" jdbcType="VARCHAR" property="directorsName" />
+    <result column="screenplayers_name" jdbcType="VARCHAR" property="screenplayersName" />
+    <result column="actors_name" jdbcType="VARCHAR" property="actorsName" />
+    <result column="runtime" jdbcType="INTEGER" property="runtime" />
+    <result column="poster_store_path" jdbcType="VARCHAR" property="posterStorePath" />
+    <result column="genres" jdbcType="VARCHAR" property="genres" />
+    <result column="countrys" jdbcType="VARCHAR" property="countrys" />
+    <result column="release_dates" jdbcType="VARCHAR" property="releaseDates" />
+    <result column="nickname" jdbcType="VARCHAR" property="nickname" />
+    <result column="imdb" jdbcType="VARCHAR" property="imdb" />
+    <result column="directors_id" jdbcType="VARCHAR" property="directorsId" />
+    <result column="screenplayers_id" jdbcType="VARCHAR" property="screenplayersId" />
+    <result column="actors_id" jdbcType="VARCHAR" property="actorsId" />
+    <result column="create_time" jdbcType="TIMESTAMP" property="createTime" />
+    <result column="update_time" jdbcType="TIMESTAMP" property="updateTime" />
+    <result column="rating_update_time" jdbcType="TIMESTAMP" property="ratingUpdateTime" />
+    <result column="status" jdbcType="BIT" property="status" />
+    <result column="summary" jdbcType="LONGVARCHAR" property="summary" />
+  </resultMap>
+</mapper>

@@ -1,0 +1,269 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd" >
+<mapper namespace="com.ushill.mapper.CommentsSummaryMapper" >
+    <resultMap id="ConmentsSummaryMap" type="com.ushill.DTO.CommentSummaryDTO" >
+        <id column="id" property="id" jdbcType="INTEGER" />
+        <result column="comment" property="comment" jdbcType="VARCHAR" />
+        <result column="comment_time" property="commentTime" jdbcType="TIMESTAMP" />
+        <result column="image" property="image" jdbcType="VARCHAR" />
+        <result column="movie_id" property="movieId" jdbcType="INTEGER" />
+        <result column="nickname" property="nickname" jdbcType="VARCHAR" />
+        <result column="score" property="score" jdbcType="DECIMAL" />
+        <result column="user_id" property="userId" jdbcType="INTEGER" />
+        <result column="votes" property="votes" jdbcType="INTEGER" />
+        <result column="is_critic" property="isCritic" jdbcType="INTEGER" />
+    </resultMap>
+
+    <select id="getCommentsSummary" resultMap="ConmentsSummaryMap" parameterType="java.util.Map">
+        SELECT cmt.comment AS comment, cmt.comment_time AS comment_time, u.image_store_path AS image, cmt.movie_id AS movie_id,
+        u.nickname AS nickname, cmt.score AS score, cmt.user_id AS user_id, cmt.votes AS votes, cmt.id AS id, u.is_critic AS is_critic
+        FROM user_comments AS cmt
+        JOIN users AS u
+        ON cmt.user_id = u.id
+        WHERE movie_id = #{movieId}
+        AND u.is_critic = #{isCritic}
+        AND cmt.status = 1
+        <if test="isCritic == true">
+            AND cmt.score >= 0
+            ORDER BY score DESC, LENGTH(COMMENT) DESC
+        </if>
+        <if test="isCritic == false">
+            ORDER BY votes DESC LIMIT 15
+        </if>
+        ;
+    </select>
+
+    <select id="getComments" resultMap="ConmentsSummaryMap" parameterType="java.util.Map">
+        SELECT cmt.comment AS comment, cmt.comment_time AS comment_time, u.image_store_path AS image, cmt.movie_id AS movie_id,
+        u.nickname AS nickname, cmt.score AS score, cmt.user_id AS user_id, cmt.votes AS votes, cmt.id AS id, u.is_critic AS is_critic
+        FROM user_comments AS cmt
+        JOIN users AS u
+        ON cmt.user_id = u.id
+        WHERE movie_id = #{movieId}
+        AND u.is_critic = #{isCritic}
+        AND cmt.status = 1
+        <if test="isCritic == true">
+            AND cmt.score >= 0
+            ORDER BY score DESC, LENGTH(COMMENT) DESC
+        </if>
+        <if test="isCritic == false">
+            ORDER BY votes DESC
+        </if>
+        LIMIT #{offset}, #{limit}
+        ;
+    </select>
+
+    <resultMap id="ConmentsRatioMap" type="com.ushill.DTO.CommentRatioDTO" >
+        <id column="excellent" property="excellent" jdbcType="INTEGER" />
+        <result column="good" property="good" jdbcType="INTEGER" />
+        <result column="mixed" property="mixed" jdbcType="INTEGER" />
+        <result column="bad" property="bad" jdbcType="INTEGER" />
+        <result column="shit" property="shit" jdbcType="INTEGER" />
+        <result column="total" property="total" jdbcType="INTEGER" />
+        <result column="display" property="display" jdbcType="INTEGER" />
+        <result column="rating" property="rating" jdbcType="DECIMAL" />
+    </resultMap>
+
+    <select id="getCommentsRatio" resultMap="ConmentsRatioMap" parameterType="java.util.Map">
+        SELECT
+        <if test="isCritic == true">
+            movies.uscc_rating AS rating,
+        </if>
+        <if test="isCritic == false">
+            movies.user_rating AS rating,
+        </if>
+        count(*) AS total,
+        sum(score_level.shit) AS shit, sum(score_level.bad) AS bad, sum(score_level.mixed) AS mixed,
+        sum(score_level.good) AS good, sum(score_level.excellent) AS excellent
+        FROM
+        (
+        SELECT
+        CASE WHEN score BETWEEN 0.0 AND 1.0 THEN 1 ELSE 0 END shit,
+        CASE WHEN score BETWEEN 1.1 AND 2.0 THEN 1 ELSE 0 END bad,
+        CASE WHEN score BETWEEN 2.1 AND 3.0 THEN 1 ELSE 0 END mixed,
+        CASE WHEN score BETWEEN 3.1 AND 4.0 THEN 1 ELSE 0 END good,
+        CASE WHEN score BETWEEN 4.1 AND 5.0 THEN 1 ELSE 0 END excellent
+        FROM user_comments
+        JOIN users ON user_comments.user_id = users.id
+        WHERE user_comments.status = 1 AND users.is_critic = #{isCritic} AND user_comments.movie_id = #{movieId}
+        )score_level
+        JOIN movies ON movies.id = #{movieId};
+    </select>
+
+    <resultMap id="CheckRatingMap" type="com.ushill.DTO.CheckRatingDTO" >
+        <id column="total" property="total" jdbcType="INTEGER" />
+        <result column="rating" property="rating" jdbcType="DECIMAL" />
+        <result column="excellent" property="excellent" jdbcType="INTEGER" />
+        <result column="movie_id" property="movieId" jdbcType="INTEGER" />
+        <result column="first_year" property="firstYear" jdbcType="INTEGER" />
+    </resultMap>
+
+    <select id="checkRating" resultMap="CheckRatingMap" parameterType="java.util.Map">
+        <if test="isCritic == true">
+        SELECT t.*, movies.first_year FROM
+        (
+            SELECT AVG(score) AS rating, COUNT(score) AS total, SUM(excellent) AS excellent, #{movieId} AS movie_id
+            FROM
+            (
+                SELECT
+                    score,
+                    CASE WHEN score BETWEEN 4.1 AND 5.0 THEN 1 ELSE 0 END excellent
+                    FROM user_comments
+                    JOIN users ON user_comments.user_id = users.id
+                    WHERE user_comments.status = 1 AND users.is_critic = 1 AND user_comments.movie_id = #{movieId}
+                ) score_level
+            )t
+        JOIN movies ON movie_id = movies.id;
+        </if>
+
+        <if test="isCritic == false">
+        SELECT AVG(score) AS rating, COUNT(score) AS total
+            FROM user_comments
+            JOIN users ON user_comments.user_id = users.id
+            WHERE movie_id = #{movieId}
+            AND users.is_critic=0
+            AND user_comments.status=1;
+        </if>
+    </select>
+
+    <update id="updateUserRating" parameterType="java.util.Map">
+        UPDATE movies SET user_rating = #{rating}
+        WHERE id = #{movieId}
+        AND status=1;
+    </update>
+
+    <update id="updateCriticRating" parameterType="java.util.Map">
+        UPDATE movies SET uscc_rating = #{rating}, uscc_rating_origin = #{ratingOrigin}, uscc_rating_cnt = #{cnt}, bnm = #{bnm}
+        WHERE id = #{movieId}
+        AND status=1;
+    </update>
+
+    <resultMap id="UserCommentsSummaryMap" type="com.ushill.DTO.UserCommentSummaryDTO" >
+        <id column="id" property="movieId" jdbcType="INTEGER" />
+        <result column="title" property="movieTitle" jdbcType="VARCHAR" />
+        <result column="score" property="score" jdbcType="DECIMAL" />
+        <result column="image" property="movieImage" jdbcType="VARCHAR" />
+    </resultMap>
+
+    <select id="getUserCommentsSummary" resultMap="UserCommentsSummaryMap" parameterType="java.util.Map">
+        SELECT m.id AS id, m.poster_store_path AS image, m.title AS title, cmt.score AS score
+        FROM user_comments AS cmt
+        JOIN movies AS m
+        ON cmt.movie_id = m.id
+        WHERE cmt.user_id = ${userId}
+        AND cmt.status = 1
+        AND m.status = 1
+        ORDER BY cmt.comment_time DESC
+    </select>
+
+    <resultMap id="UserCommentsMap" type="com.ushill.DTO.UserCommentDTO" >
+        <id column="comment_id" property="id" jdbcType="INTEGER" />
+        <result column="comment" property="comment" jdbcType="VARCHAR" />
+        <result column="comment_time" property="commentTime" jdbcType="VARCHAR" />
+        <result column="score" property="score" jdbcType="DECIMAL" />
+        <result column="id" jdbcType="INTEGER" property="movieDTO.id" />
+        <result column="title" jdbcType="VARCHAR" property="movieDTO.title" />
+        <result column="directors_name" jdbcType="VARCHAR" property="movieDTO.directorsName" />
+        <result column="screenplayers_name" jdbcType="VARCHAR" property="movieDTO.screenplayersName" />
+        <result column="actors_name" jdbcType="VARCHAR" property="movieDTO.actorsName" />
+        <result column="runtime" jdbcType="INTEGER" property="movieDTO.runtime" />
+        <result column="poster_store_path" jdbcType="VARCHAR" property="movieDTO.posterStorePath" />
+        <result column="release_date_cn" jdbcType="VARCHAR" property="movieDTO.releaseDateCn" />
+        <result column="uscc_rating" jdbcType="DECIMAL" property="movieDTO.usccRating" />
+        <result column="countrys" jdbcType="VARCHAR" property="movieDTO.countrys" />
+        <result column="first_year" jdbcType="CHAR" property="movieDTO.firstYear" />
+        <result column="bnm" jdbcType="TINYINT" property="movieDTO.bnm" />
+        <result column="genres" jdbcType="VARCHAR" property="movieDTO.genres" />
+        <result column="release_dates" jdbcType="VARCHAR" property="movieDTO.releaseDates" />
+        <result column="nickname" jdbcType="VARCHAR" property="movieDTO.nickname" />
+        <result column="imdb" jdbcType="VARCHAR" property="movieDTO.imdb" />
+        <result column="summary" jdbcType="LONGVARCHAR" property="movieDTO.summary" />
+    </resultMap>
+
+    <select id="getUserComments" resultMap="UserCommentsMap" parameterType="java.util.Map">
+        SELECT m.id AS comment_id, cmt.score AS score, cmt.comment AS comment, cmt.comment_time AS comment_time, m.*
+        FROM user_comments AS cmt
+        JOIN movies AS m
+        ON cmt.movie_id = m.id
+        WHERE cmt.user_id = #{userId}
+        AND cmt.status = 1
+        AND m.status = 1
+        ORDER BY cmt.comment_time DESC
+    </select>
+
+    <resultMap id="CriticsStatMap" type="com.ushill.DTO.UserStatDTO" >
+        <id column="id" property="id" jdbcType="INTEGER" />
+        <result column="nickname" property="nickname" jdbcType="VARCHAR" />
+        <result column="avg_score" property="avgScore" jdbcType="DECIMAL" />
+        <result column="total" property="total" jdbcType="INTEGER" />
+        <result column="title" property="title" jdbcType="VARCHAR" />
+        <result column="image" property="image" jdbcType="VARCHAR" />
+        <result column="shit" property="shit" jdbcType="INTEGER" />
+        <result column="bad" property="bad" jdbcType="INTEGER" />
+        <result column="mixed" property="mixed" jdbcType="INTEGER" />
+        <result column="good" property="good" jdbcType="INTEGER" />
+        <result column="excellent" property="excellent" jdbcType="INTEGER" />
+    </resultMap>
+
+    <select id="getCriticsStat" resultMap="CriticsStatMap" parameterType="Integer">
+    SELECT user_id AS id, nickname, count(*) AS total, AVG(score) AS avg_score, image, title,
+        sum(score_level.shit) AS shit, sum(score_level.bad) AS bad, sum(score_level.mixed) AS mixed,
+        sum(score_level.good) AS good, sum(score_level.excellent) AS excellent
+    FROM
+        (
+            SELECT
+                user_id,
+                nickname,
+                score,
+                image_store_path AS image,
+                title,
+                CASE WHEN score BETWEEN 0.0 AND 1.0 THEN 1 ELSE 0 END shit,
+                CASE WHEN score BETWEEN 1.1 AND 2.0 THEN 1 ELSE 0 END bad,
+                CASE WHEN score BETWEEN 2.1 AND 3.0 THEN 1 ELSE 0 END mixed,
+                CASE WHEN score BETWEEN 3.1 AND 4.0 THEN 1 ELSE 0 END good,
+                CASE WHEN score BETWEEN 4.1 AND 5.0 THEN 1 ELSE 0 END excellent
+                FROM user_comments
+                JOIN users ON user_comments.user_id = users.id
+                WHERE users.is_critic = 1 AND user_comments.status = 1 AND users.status = 1
+            )score_level
+            GROUP BY user_id
+            <if test="value == 1">
+                ORDER BY total DESC
+            </if>
+            <if test="value == 2">
+                ORDER BY avg_score DESC
+            </if>
+    </select>
+
+
+    <resultMap id="UserStatMap" type="com.ushill.DTO.UserStatDTO" >
+        <id column="id" property="id" jdbcType="INTEGER" />
+        <result column="avg_score" property="avgScore" jdbcType="DECIMAL" />
+        <result column="total" property="total" jdbcType="INTEGER" />
+        <result column="shit" property="shit" jdbcType="INTEGER" />
+        <result column="bad" property="bad" jdbcType="INTEGER" />
+        <result column="mixed" property="mixed" jdbcType="INTEGER" />
+        <result column="good" property="good" jdbcType="INTEGER" />
+        <result column="excellent" property="excellent" jdbcType="INTEGER" />
+    </resultMap>
+
+    <select id="getUserStat" resultMap="UserStatMap" parameterType="Integer">
+    SELECT user_id AS id, count(*) AS total, AVG(score) AS avg_score,
+        sum(score_level.shit) AS shit, sum(score_level.bad) AS bad, sum(score_level.mixed) AS mixed,
+        sum(score_level.good) AS good, sum(score_level.excellent) AS excellent
+        FROM
+        (
+        SELECT
+            user_id,
+            score,
+            CASE WHEN score BETWEEN 0.0 AND 1.0 THEN 1 ELSE 0 END shit,
+            CASE WHEN score BETWEEN 1.1 AND 2.0 THEN 1 ELSE 0 END bad,
+            CASE WHEN score BETWEEN 2.1 AND 3.0 THEN 1 ELSE 0 END mixed,
+            CASE WHEN score BETWEEN 3.1 AND 4.0 THEN 1 ELSE 0 END good,
+            CASE WHEN score BETWEEN 4.1 AND 5.0 THEN 1 ELSE 0 END excellent
+            FROM user_comments
+            WHERE user_id = #{value} AND user_comments.status = 1
+        )score_level
+    </select>
+
+</mapper>

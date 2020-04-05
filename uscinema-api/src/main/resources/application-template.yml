@@ -1,0 +1,54 @@
+############################################################
+#
+# web访问端口号
+#
+############################################################
+server:
+  address: x.x.x.x
+  port: xxxx
+  servlet:
+    context-path: /
+
+############################################################
+#
+# 配置数据源信息
+#
+############################################################
+spring:
+  datasource:                                           # 数据源的相关配置
+    url: jdbc:mysql://x.x.x.x:xxxx/xxxx?useUnicode=true&characterEncoding=UTF-8&autoReconnect=true&useSSL=false
+    username: xx
+    password: xxxx
+
+  redis:
+    host: x.x.x.x
+    port: xxxx
+    password: xxxx
+    database: x
+
+  rabbitmq:
+    addresses: x.x.x.x
+    port: xxxx
+    username: xxxx
+    password: xxxx
+    virtual-host: x
+    connection-timeout: 10000
+
+    publisher-confirms: true
+    publisher-returns: true
+    template:
+      mandatory: true
+
+    listener:
+      simple:
+        acknowledge-mode: MANUAL
+        concurrency: 1
+        max-concurrency: 5
+
+ftp:
+  username: xx
+  password: xxxx
+  host: x.x.x.x
+  port: xxxx
+  path: ./opt/uscc-static/static
+  header: /home/ushill/
