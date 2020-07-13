@@ -31,6 +31,7 @@ public class StatisticsController {
 
     private final CachedStatMap cachedStatMap;
 
+    @Autowired
     public StatisticsController(CachedStatMap cachedStatMap) {
         this.cachedStatMap = cachedStatMap;
     }
